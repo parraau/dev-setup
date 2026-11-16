@@ -59,10 +59,9 @@ bash ~/dev-setup/herramientas/aplicar-a-proyecto.sh <carpeta-del-repo>
 
 Copia el workflow y la configuración de Codespaces, y suma `.env` al `.gitignore`.
 
-## Configuración que se hace una sola vez en GitHub
+## Configuración en GitHub
 
-- **Settings → Actions → General → Access** de este repo: elegir *Accessible from repositories owned by the user 'parraau'*. Sin esto, los otros repos no pueden usar el workflow.
-- Si este repo es **privado**: crear un token *fine-grained* con permiso de lectura (*Contents: Read*) sobre `parraau/dev-setup` y guardarlo como secreto `DEV_SETUP_TOKEN` en cada proyecto (o en una organización). Si el repo es público, no hace falta.
+Ninguna. El repo es público: cualquier proyecto de `parraau` puede usar el workflow y una máquina nueva lo clona sin iniciar sesión. No contiene claves ni datos de clientes; no subir nunca nada de eso acá.
 
 ## Estructura
 
