@@ -39,9 +39,9 @@ fi
 seccion "2. Claves filtradas en el repo y su historial (gitleaks)"
 if tiene gitleaks; then
   if [ -d .git ]; then
-    gitleaks detect --source . --no-banner --redact && bien "Sin claves en el historial" || mal "gitleaks encontró posibles claves (detalle arriba)"
+    gitleaks detect --source . --no-banner --redact -v 2>&1 | grep -E "RuleID|File:|Commit:|Date:|leaks found|no leaks" && [ ${PIPESTATUS[0]} -eq 0 ] && bien "Sin claves en el historial" || mal "gitleaks encontró posibles claves (detalle arriba)"
   else
-    gitleaks detect --source . --no-git --no-banner --redact && bien "Sin claves en los archivos" || mal "gitleaks encontró posibles claves"
+    gitleaks detect --source . --no-git --no-banner --redact -v 2>&1 | grep -E "RuleID|File:|leaks found|no leaks" && [ ${PIPESTATUS[0]} -eq 0 ] && bien "Sin claves en los archivos" || mal "gitleaks encontró posibles claves"
   fi
 else
   aviso "gitleaks no instalado: solo se revisaron secretos con Semgrep"
