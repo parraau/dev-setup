@@ -47,23 +47,24 @@ else
   aviso "gitleaks no instalado: solo se revisaron secretos con Semgrep"
 fi
 
-seccion "3. Dependencias con vulnerabilidades"
+seccion "3. Dependencias con vulnerabilidades (todas las subcarpetas)"
 REVISO=0
-if [ -f package-lock.json ]; then
+PODA=(-path "*/node_modules" -o -path "*/.git" -o -path "*/.venv" -o -path "*/venv" -o -path "*/dist" -o -path "*/build" -o -path "*/vendor")
+while IFS= read -r pj; do
+  d=$(dirname "$pj"); REVISO=1
+  if [ -f "$d/package-lock.json" ]; then
+    (cd "$d" && npm audit --audit-level=high --omit=dev >/tmp/npm-audit.txt 2>&1) && bien "npm $d: sin vulnerabilidades altas o críticas" || { tail -15 /tmp/npm-audit.txt | sed 's/^/    /'; mal "npm $d: vulnerabilidades altas o críticas"; }
+  elif [ -f "$d/pnpm-lock.yaml" ] && tiene pnpm; then
+    (cd "$d" && pnpm audit --audit-level high --prod) && bien "pnpm $d: OK" || mal "pnpm $d: vulnerabilidades altas o críticas"
+  else
+    aviso "$d/package.json sin lockfile: commitear package-lock.json para poder auditar y fijar versiones"
+  fi
+done < <(find . \( "${PODA[@]}" \) -prune -o -name package.json -print 2>/dev/null)
+if tiene pip-audit; then PA=pip-audit; else PA="python3 -m pip_audit"; fi
+while IFS= read -r rq; do
   REVISO=1
-  npm audit --audit-level=high --omit=dev && bien "npm: sin vulnerabilidades altas o críticas" || mal "npm audit: hay vulnerabilidades altas o críticas"
-elif [ -f pnpm-lock.yaml ] && tiene pnpm; then
-  REVISO=1
-  pnpm audit --audit-level high --prod && bien "pnpm: sin vulnerabilidades altas o críticas" || mal "pnpm audit: hay vulnerabilidades altas o críticas"
-elif [ -f package.json ]; then
-  REVISO=1
-  aviso "package.json sin lockfile: commitear package-lock.json para poder auditar y fijar versiones"
-fi
-if [ -f requirements.txt ]; then
-  REVISO=1
-  if tiene pip-audit; then PA=pip-audit; else PA="python3 -m pip_audit"; fi
-  $PA -r requirements.txt --progress-spinner off && bien "Python: sin vulnerabilidades conocidas" || mal "pip-audit: hay dependencias vulnerables"
-fi
+  $PA -r "$rq" --progress-spinner off && bien "Python $rq: sin vulnerabilidades conocidas" || mal "pip-audit $rq: hay dependencias vulnerables"
+done < <(find . \( "${PODA[@]}" \) -prune -o -name "requirements*.txt" -print 2>/dev/null)
 [ $REVISO = 0 ] && bien "Sin dependencias declaradas"
 
 seccion "4. Plataforma web (Modern Web Guidance: patrones heredados)"
