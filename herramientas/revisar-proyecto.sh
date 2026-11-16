@@ -61,11 +61,12 @@ while IFS= read -r pj; do
   fi
 done < <(find . \( "${PODA[@]}" \) -prune -o -name package.json -print 2>/dev/null)
 if tiene pip-audit; then PA=pip-audit; else PA="python3 -m pip_audit"; fi
+echo "  (usando: $PA, $($PA --version 2>&1))"
 while IFS= read -r rq; do
   REVISO=1
   # Si todo está fijado con ==, modo rápido (sin resolver dependencias); si no, modo completo
   if grep -vE '^\s*(#|$|-)' "$rq" | grep -qv '=='; then MODO=(); else MODO=(--no-deps --disable-pip); fi
-  $PA -r "$rq" "${MODO[@]}" --progress-spinner off 2>/dev/null && bien "Python $rq: sin vulnerabilidades conocidas" || mal "pip-audit $rq: hay dependencias vulnerables"
+  $PA -r "$rq" "${MODO[@]}" --progress-spinner off && bien "Python $rq: sin vulnerabilidades conocidas" || mal "pip-audit $rq: hay dependencias vulnerables"
 done < <(find . \( "${PODA[@]}" \) -prune -o -name "requirements*.txt" -print 2>/dev/null)
 [ $REVISO = 0 ] && bien "Sin dependencias declaradas"
 
