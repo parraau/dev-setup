@@ -1,0 +1,10 @@
+# Copiar este archivo a .github/workflows/ de cada proyecto.
+# En cada push y pull request corre el estándar de Augu en GitHub, sin instalar nada en la máquina.
+name: Estándar Augu
+on:
+  push:
+  pull_request:
+jobs:
+  estandar:
+    uses: parraau/dev-setup/.github/workflows/estandar.yml@main
+    secrets: inherit

@@ -1,0 +1,51 @@
+# Control automático del estándar de Augu.
+# - Corre en este repo en cada push.
+# - Los demás repos lo llaman con plantillas/.github/workflows/estandar-augu.yml
+#   (requiere: Settings > Actions > General > Access > "Accessible from repositories owned by parraau").
+name: Estándar Augu
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+    secrets:
+      DEV_SETUP_TOKEN:
+        required: false   # solo hace falta si dev-setup es privado
+
+permissions:
+  contents: read
+
+jobs:
+  revisar:
+    name: Seguridad, dependencias, plataforma y diseño
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Código del proyecto
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historial completo para que gitleaks revise commits viejos
+
+      - name: Herramientas del estándar
+        uses: actions/checkout@v4
+        with:
+          repository: parraau/dev-setup
+          path: .estandar-augu
+          token: ${{ secrets.DEV_SETUP_TOKEN || github.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Semgrep, pip-audit y gitleaks
+        run: bash .estandar-augu/herramientas/instalar-linux.sh
+
+      - name: Revisar el proyecto
+        run: |
+          # la carpeta de herramientas no se revisa a sí misma cuando corre en otro repo
+          [ "${{ github.repository }}" != "parraau/dev-setup" ] && echo ".estandar-augu/" >> .semgrepignore
+          bash .estandar-augu/herramientas/revisar-proyecto.sh .
