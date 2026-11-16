@@ -7,4 +7,5 @@ on:
 jobs:
   estandar:
     uses: parraau/dev-setup/.github/workflows/estandar.yml@main
-    secrets: inherit
+    secrets:
+      DEV_SETUP_TOKEN: ${{ secrets.DEV_SETUP_TOKEN }}   # solo si dev-setup es privado
