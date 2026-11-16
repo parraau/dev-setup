@@ -60,7 +60,7 @@ while IFS= read -r pj; do
     aviso "$d/package.json sin lockfile: commitear package-lock.json para poder auditar y fijar versiones"
   fi
 done < <(find . \( "${PODA[@]}" \) -prune -o -name package.json -print 2>/dev/null)
-# Fuente OSV: en GitHub Actions la fuente por defecto (PyPI) devolvió falsos "sin vulnerabilidades"
+# Fuente OSV (base abierta de vulnerabilidades, la misma que usa GitHub)
 if tiene pip-audit; then PA=pip-audit; else PA="python3 -m pip_audit"; fi
 echo "  (usando: $PA, $($PA --version 2>&1))"
 while IFS= read -r rq; do
